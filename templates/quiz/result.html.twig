@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+{% block title %}Ergebnis{% endblock %}
+{% block body %}
+<h1>Ergebnis: {{ attempt.score|number_format(1) }}%</h1>
+<ul class="list-group">
+    {% for item in attempt.answers %}
+        <li class="list-group-item d-flex justify-content-between">
+            <span>{{ item.question }}</span>
+            <span class="badge bg-{{ item.correct ? 'success' : 'danger' }}">{{ item.correct ? 'Richtig' : 'Falsch' }}</span>
+        </li>
+    {% endfor %}
+</ul>
+<a href="{{ path('dashboard') }}" class="btn btn-primary mt-3">Zurück zum Dashboard</a>
+{% endblock %}

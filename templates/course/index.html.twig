@@ -1,0 +1,21 @@
+{% extends 'base.html.twig' %}
+{% block title %}Kurse{% endblock %}
+{% block body %}
+<h1>Kurse</h1>
+<div class="row">
+    {% for course in courses %}
+        <div class="col-md-4 mb-3">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">{{ course.title }}</h5>
+                    <p class="card-text">{{ course.description|slice(0,120) ~ '...' }}</p>
+                    <p><span class="badge bg-info">Level: {{ course.level.value }}</span></p>
+                    <a href="{{ path('course_show', {id: course.id}) }}" class="btn btn-primary">Details</a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <p>Keine Kurse gefunden.</p>
+    {% endfor %}
+</div>
+{% endblock %}

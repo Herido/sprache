@@ -1,0 +1,32 @@
+{% extends 'base.html.twig' %}
+{% block title %}Dashboard{% endblock %}
+{% block body %}
+<h1>Willkommen, {{ app.user.name }}</h1>
+<div class="row mb-4">
+    {% for course in courses %}
+        <div class="col-md-4">
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">{{ course.title }}</h5>
+                    <p>{{ course.description|slice(0,100) ~ '...' }}</p>
+                    <div class="progress mb-2">
+                        <div class="progress-bar" role="progressbar" style="width: {{ progress[course.id]|default(0) }}%" aria-valuenow="{{ progress[course.id]|default(0) }}" aria-valuemin="0" aria-valuemax="100"></div>
+                    </div>
+                    <a href="{{ path('course_show', {id: course.id}) }}" class="btn btn-outline-primary btn-sm">Weiter</a>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+</div>
+<h3>Letzte Quiz-Versuche</h3>
+<ul class="list-group">
+    {% for attempt in attempts %}
+        <li class="list-group-item d-flex justify-content-between">
+            <span>{{ attempt.quiz.title }} ({{ attempt.submittedAt|date('d.m.Y H:i') }})</span>
+            <span class="badge bg-info">{{ attempt.score|number_format(1) }}%</span>
+        </li>
+    {% else %}
+        <li class="list-group-item">Noch keine Quiz-Versuche.</li>
+    {% endfor %}
+</ul>
+{% endblock %}
