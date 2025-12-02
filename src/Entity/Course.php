@@ -24,20 +24,32 @@ class Course
     #[Assert\NotBlank]
     private string $description = '';
 
-    #[ORM\Column(enumType: CourseLevel::class)]
+    #[ORM\Column(type: 'string', enumType: CourseLevel::class)]
     private CourseLevel $level = CourseLevel::BEGINNER;
 
+    /** @var Collection<int, Lesson> */
     #[ORM\OneToMany(mappedBy: 'course', targetEntity: Lesson::class, cascade: ['persist', 'remove'])]
     private Collection $lessons;
 
-    #[ORM\OneToMany(mappedBy: 'course', targetEntity: Enrollment::class, cascade: ['persist', 'remove'])]
-    private Collection $enrollments;
+    /** @var Collection<int, Quiz> */
+    #[ORM\OneToMany(mappedBy: 'course', targetEntity: Quiz::class, cascade: ['persist', 'remove'])]
+    private Collection $quizzes;
+
+    /** @var Collection<int, Vocabulary> */
+    #[ORM\OneToMany(mappedBy: 'course', targetEntity: Vocabulary::class, cascade: ['persist', 'remove'])]
+    private Collection $vocabularies;
+
+    /** @var Collection<int, Progress> */
+    #[ORM\OneToMany(mappedBy: 'course', targetEntity: Progress::class, cascade: ['persist', 'remove'])]
+    private Collection $progressEntries;
 
     public function __construct()
     {
         $this->id = Uuid::v4();
         $this->lessons = new ArrayCollection();
-        $this->enrollments = new ArrayCollection();
+        $this->quizzes = new ArrayCollection();
+        $this->vocabularies = new ArrayCollection();
+        $this->progressEntries = new ArrayCollection();
     }
 
     public function getId(): Uuid
@@ -89,7 +101,7 @@ class Course
     public function addLesson(Lesson $lesson): self
     {
         if (!$this->lessons->contains($lesson)) {
-            $this->lessons[] = $lesson;
+            $this->lessons->add($lesson);
             $lesson->setCourse($this);
         }
 
@@ -106,10 +118,64 @@ class Course
     }
 
     /**
-     * @return Collection<int, Enrollment>
+     * @return Collection<int, Quiz>
      */
-    public function getEnrollments(): Collection
+    public function getQuizzes(): Collection
     {
-        return $this->enrollments;
+        return $this->quizzes;
+    }
+
+    public function addQuiz(Quiz $quiz): self
+    {
+        if (!$this->quizzes->contains($quiz)) {
+            $this->quizzes->add($quiz);
+            $quiz->setCourse($this);
+        }
+
+        return $this;
+    }
+
+    public function removeQuiz(Quiz $quiz): self
+    {
+        if ($this->quizzes->removeElement($quiz) && $quiz->getCourse() === $this) {
+            $quiz->setCourse(null);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Vocabulary>
+     */
+    public function getVocabularies(): Collection
+    {
+        return $this->vocabularies;
+    }
+
+    public function addVocabulary(Vocabulary $vocabulary): self
+    {
+        if (!$this->vocabularies->contains($vocabulary)) {
+            $this->vocabularies->add($vocabulary);
+            $vocabulary->setCourse($this);
+        }
+
+        return $this;
+    }
+
+    public function removeVocabulary(Vocabulary $vocabulary): self
+    {
+        if ($this->vocabularies->removeElement($vocabulary) && $vocabulary->getCourse() === $this) {
+            $vocabulary->setCourse(null);
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Progress>
+     */
+    public function getProgressEntries(): Collection
+    {
+        return $this->progressEntries;
     }
 }

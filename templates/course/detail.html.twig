@@ -1,0 +1,34 @@
+{% extends 'base.html.twig' %}
+{% block title %}Kursdetails{% endblock %}
+{% block body %}
+<h1>{{ course.title }}</h1>
+<p class="text-muted">Level: {{ course.level.value }}</p>
+<p>{{ course.description }}</p>
+
+<h3>Lektionen</h3>
+<ul class="list-group mb-3">
+    {% for lesson in course.lessons %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ lesson.title }}
+            <a class="btn btn-outline-primary btn-sm" href="{{ path('app_lesson_show', {id: lesson.id}) }}">Öffnen</a>
+        </li>
+    {% else %}
+        <li class="list-group-item">Keine Lektionen vorhanden.</li>
+    {% endfor %}
+</ul>
+
+<h3>Quizzes</h3>
+<ul class="list-group mb-3">
+    {% for quiz in course.quizzes %}
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+            {{ quiz.title }}
+            <a class="btn btn-outline-success btn-sm" href="{{ path('app_quiz_take', {id: quiz.id}) }}">Starten</a>
+        </li>
+    {% else %}
+        <li class="list-group-item">Keine Quizzes vorhanden.</li>
+    {% endfor %}
+</ul>
+
+<h3>Vokabeln</h3>
+<a class="btn btn-outline-info" href="{{ path('app_vocabulary_list', {courseId: course.id}) }}">Vokabeln anzeigen</a>
+{% endblock %}

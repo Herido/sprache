@@ -6,28 +6,32 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
 
-#[ORM\Entity(repositoryClass: 'App\\Repository\\EnrollmentRepository')]
-class Enrollment
+#[ORM\Entity(repositoryClass: 'App\\Repository\\ProgressRepository')]
+class Progress
 {
     #[ORM\Id]
     #[ORM\Column(type: 'uuid', unique: true)]
     private Uuid $id;
 
-    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'enrollments')]
+    #[ORM\ManyToOne(targetEntity: User::class, inversedBy: 'progressEntries')]
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
-    #[ORM\ManyToOne(targetEntity: Course::class, inversedBy: 'enrollments')]
+    #[ORM\ManyToOne(targetEntity: Course::class, inversedBy: 'progressEntries')]
     #[ORM\JoinColumn(nullable: false)]
     private ?Course $course = null;
 
-    #[ORM\Column(type: 'float')]
-    #[Assert\PositiveOrZero]
-    private float $progress = 0.0;
+    #[ORM\Column(type: 'integer')]
+    #[Assert\Range(min: 0, max: 100)]
+    private int $progressValue = 0;
+
+    #[ORM\Column(type: 'datetime_immutable')]
+    private \DateTimeImmutable $updatedAt;
 
     public function __construct()
     {
         $this->id = Uuid::v4();
+        $this->updatedAt = new \DateTimeImmutable();
     }
 
     public function getId(): Uuid
@@ -57,14 +61,20 @@ class Enrollment
         return $this;
     }
 
-    public function getProgress(): float
+    public function getProgressValue(): int
     {
-        return $this->progress;
+        return $this->progressValue;
     }
 
-    public function setProgress(float $progress): self
+    public function setProgressValue(int $progressValue): self
     {
-        $this->progress = min(100, max(0, $progress));
+        $this->progressValue = $progressValue;
+        $this->updatedAt = new \DateTimeImmutable();
         return $this;
+    }
+
+    public function getUpdatedAt(): \DateTimeImmutable
+    {
+        return $this->updatedAt;
     }
 }

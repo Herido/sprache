@@ -2,14 +2,14 @@
 
 namespace App\Repository;
 
-use App\Entity\Course;
+use App\Entity\Vocabulary;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
-class CourseRepository extends ServiceEntityRepository
+class VocabularyRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Course::class);
+        parent::__construct($registry, Vocabulary::class);
     }
 }

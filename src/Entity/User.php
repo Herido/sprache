@@ -2,7 +2,7 @@
 
 namespace App\Entity;
 
-use App\Enum\UserRole;
+use App\Enum\Role;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
@@ -13,7 +13,7 @@ use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
 
 #[ORM\Entity(repositoryClass: 'App\\Repository\\UserRepository')]
-#[UniqueEntity('email')]
+#[UniqueEntity(fields: ['email'])]
 class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
     #[ORM\Id]
@@ -36,25 +36,18 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Assert\NotBlank]
     private string $name = '';
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Enrollment::class, cascade: ['persist', 'remove'])]
-    private Collection $enrollments;
+    #[ORM\Column(type: 'datetime_immutable')]
+    private \DateTimeImmutable $createdAt;
 
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: VocabularyEntry::class, cascade: ['persist', 'remove'])]
-    private Collection $vocabularyEntries;
-
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: QuizAttempt::class, cascade: ['persist', 'remove'])]
-    private Collection $quizAttempts;
-
-    #[ORM\OneToMany(mappedBy: 'user', targetEntity: LessonProgress::class, cascade: ['persist', 'remove'])]
-    private Collection $lessonProgressRecords;
+    /** @var Collection<int, Progress> */
+    #[ORM\OneToMany(mappedBy: 'user', targetEntity: Progress::class, cascade: ['persist', 'remove'])]
+    private Collection $progressEntries;
 
     public function __construct()
     {
         $this->id = Uuid::v4();
-        $this->enrollments = new ArrayCollection();
-        $this->vocabularyEntries = new ArrayCollection();
-        $this->quizAttempts = new ArrayCollection();
-        $this->lessonProgressRecords = new ArrayCollection();
+        $this->createdAt = new \DateTimeImmutable();
+        $this->progressEntries = new ArrayCollection();
     }
 
     public function getId(): Uuid
@@ -81,8 +74,8 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function getRoles(): array
     {
         $roles = $this->roles;
-        if (!in_array(UserRole::STUDENT->value, $roles, true)) {
-            $roles[] = UserRole::STUDENT->value;
+        if (!in_array(Role::ROLE_USER->value, $roles, true)) {
+            $roles[] = Role::ROLE_USER->value;
         }
 
         return array_unique($roles);
@@ -94,7 +87,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    public function addRole(UserRole $role): self
+    public function addRole(Role $role): self
     {
         if (!in_array($role->value, $this->roles, true)) {
             $this->roles[] = $role->value;
@@ -116,7 +109,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
 
     public function eraseCredentials(): void
     {
-        // no-op
     }
 
     public function getName(): string
@@ -130,54 +122,35 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
-    /**
-     * @return Collection<int, Enrollment>
-     */
-    public function getEnrollments(): Collection
+    public function getCreatedAt(): \DateTimeImmutable
     {
-        return $this->enrollments;
+        return $this->createdAt;
     }
 
-    public function addEnrollment(Enrollment $enrollment): self
+    /**
+     * @return Collection<int, Progress>
+     */
+    public function getProgressEntries(): Collection
     {
-        if (!$this->enrollments->contains($enrollment)) {
-            $this->enrollments[] = $enrollment;
-            $enrollment->setUser($this);
+        return $this->progressEntries;
+    }
+
+    public function addProgress(Progress $progress): self
+    {
+        if (!$this->progressEntries->contains($progress)) {
+            $this->progressEntries->add($progress);
+            $progress->setUser($this);
         }
 
         return $this;
     }
 
-    public function removeEnrollment(Enrollment $enrollment): self
+    public function removeProgress(Progress $progress): self
     {
-        if ($this->enrollments->removeElement($enrollment) && $enrollment->getUser() === $this) {
-            $enrollment->setUser(null);
+        if ($this->progressEntries->removeElement($progress) && $progress->getUser() === $this) {
+            $progress->setUser(null);
         }
 
         return $this;
-    }
-
-    /**
-     * @return Collection<int, VocabularyEntry>
-     */
-    public function getVocabularyEntries(): Collection
-    {
-        return $this->vocabularyEntries;
-    }
-
-    /**
-     * @return Collection<int, QuizAttempt>
-     */
-    public function getQuizAttempts(): Collection
-    {
-        return $this->quizAttempts;
-    }
-
-    /**
-     * @return Collection<int, LessonProgress>
-     */
-    public function getLessonProgressRecords(): Collection
-    {
-        return $this->lessonProgressRecords;
     }
 }

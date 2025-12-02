@@ -1,16 +1,8 @@
 {% extends 'base.html.twig' %}
-{% block title %}{{ lesson.title }}{% endblock %}
+{% block title %}Lektion{% endblock %}
 {% block body %}
 <h1>{{ lesson.title }}</h1>
-<div class="mb-3">{{ lesson.content|raw }}</div>
-<a href="{{ path('lesson_complete', {id: lesson.id}) }}" class="btn btn-success">Als abgeschlossen markieren</a>
-<hr/>
-<h3>Quiz</h3>
-<ul>
-    {% for quiz in lesson.quizzes %}
-        <li><a href="{{ path('quiz_take', {id: quiz.id}) }}">{{ quiz.title }}</a></li>
-    {% else %}
-        <li>Keine Quizfragen vorhanden.</li>
-    {% endfor %}
-</ul>
+<article class="mt-3">
+    {{ lesson.content|nl2br }}
+</article>
 {% endblock %}

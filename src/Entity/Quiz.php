@@ -15,30 +15,38 @@ class Quiz
     #[ORM\Column(type: 'uuid', unique: true)]
     private Uuid $id;
 
+    #[ORM\ManyToOne(targetEntity: Course::class, inversedBy: 'quizzes')]
+    #[ORM\JoinColumn(nullable: false)]
+    private ?Course $course = null;
+
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
     private string $title = '';
 
-    #[ORM\ManyToOne(targetEntity: Lesson::class, inversedBy: 'quizzes')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?Lesson $lesson = null;
-
-    #[ORM\OneToMany(mappedBy: 'quiz', targetEntity: Question::class, cascade: ['persist', 'remove'])]
+    /** @var Collection<int, QuizQuestion> */
+    #[ORM\OneToMany(mappedBy: 'quiz', targetEntity: QuizQuestion::class, cascade: ['persist', 'remove'])]
     private Collection $questions;
-
-    #[ORM\OneToMany(mappedBy: 'quiz', targetEntity: QuizAttempt::class, cascade: ['persist', 'remove'])]
-    private Collection $attempts;
 
     public function __construct()
     {
         $this->id = Uuid::v4();
         $this->questions = new ArrayCollection();
-        $this->attempts = new ArrayCollection();
     }
 
     public function getId(): Uuid
     {
         return $this->id;
+    }
+
+    public function getCourse(): ?Course
+    {
+        return $this->course;
+    }
+
+    public function setCourse(?Course $course): self
+    {
+        $this->course = $course;
+        return $this;
     }
 
     public function getTitle(): string
@@ -52,30 +60,30 @@ class Quiz
         return $this;
     }
 
-    public function getLesson(): ?Lesson
-    {
-        return $this->lesson;
-    }
-
-    public function setLesson(?Lesson $lesson): self
-    {
-        $this->lesson = $lesson;
-        return $this;
-    }
-
     /**
-     * @return Collection<int, Question>
+     * @return Collection<int, QuizQuestion>
      */
     public function getQuestions(): Collection
     {
         return $this->questions;
     }
 
-    /**
-     * @return Collection<int, QuizAttempt>
-     */
-    public function getAttempts(): Collection
+    public function addQuestion(QuizQuestion $question): self
     {
-        return $this->attempts;
+        if (!$this->questions->contains($question)) {
+            $this->questions->add($question);
+            $question->setQuiz($this);
+        }
+
+        return $this;
+    }
+
+    public function removeQuestion(QuizQuestion $question): self
+    {
+        if ($this->questions->removeElement($question) && $question->getQuiz() === $this) {
+            $question->setQuiz(null);
+        }
+
+        return $this;
     }
 }

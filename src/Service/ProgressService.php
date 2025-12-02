@@ -3,55 +3,28 @@
 namespace App\Service;
 
 use App\Entity\Course;
-use App\Entity\Lesson;
+use App\Entity\Progress;
 use App\Entity\User;
-use App\Repository\EnrollmentRepository;
-use App\Repository\LessonProgressRepository;
+use App\Repository\ProgressRepository;
+use Doctrine\ORM\EntityManagerInterface;
 
 class ProgressService
 {
     public function __construct(
-        private EnrollmentRepository $enrollmentRepository,
-        private LessonProgressRepository $lessonProgressRepository
+        private readonly ProgressRepository $progressRepository,
+        private readonly EntityManagerInterface $entityManager
     ) {
     }
 
-    public function enroll(User $user, Course $course): void
+    public function recordProgress(User $user, Course $course, int $value): Progress
     {
-        $enrollment = $this->enrollmentRepository->findOneByUserAndCourse($user, $course) ?? new \App\Entity\Enrollment();
-        $enrollment->setUser($user)->setCourse($course)->setProgress(0);
-        $this->enrollmentRepository->getEntityManager()->persist($enrollment);
-        $this->enrollmentRepository->getEntityManager()->flush();
-    }
+        $progress = $this->progressRepository->findOneBy(['user' => $user, 'course' => $course])
+            ?? (new Progress())->setUser($user)->setCourse($course);
 
-    public function completeLesson(User $user, Lesson $lesson): float
-    {
-        $course = $lesson->getCourse();
-        if (!$course) {
-            return 0.0;
-        }
-
-        $this->lessonProgressRepository->markCompleted($user, $lesson);
-        $completed = $this->lessonProgressRepository->countCompletedByCourse($user, (string) $course->getId());
-        $totalLessons = max(1, count($course->getLessons()));
-        $progress = ($completed / $totalLessons) * 100;
-
-        $enrollment = $this->enrollmentRepository->findOneByUserAndCourse($user, $course);
-        if ($enrollment) {
-            $enrollment->setProgress($progress);
-            $this->enrollmentRepository->getEntityManager()->flush();
-        }
+        $progress->setProgressValue($value);
+        $this->entityManager->persist($progress);
+        $this->entityManager->flush();
 
         return $progress;
-    }
-
-    public function getCourseProgress(User $user, Course $course): float
-    {
-        $enrollment = $this->enrollmentRepository->findOneByUserAndCourse($user, $course);
-        if (!$enrollment) {
-            return 0.0;
-        }
-
-        return $enrollment->getProgress();
     }
 }

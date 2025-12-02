@@ -2,13 +2,12 @@
 
 namespace App\Entity;
 
-use App\Enum\TaskType;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
 
-#[ORM\Entity(repositoryClass: 'App\\Repository\\QuestionRepository')]
-class Question
+#[ORM\Entity(repositoryClass: 'App\\Repository\\QuizQuestionRepository')]
+class QuizQuestion
 {
     #[ORM\Id]
     #[ORM\Column(type: 'uuid', unique: true)]
@@ -20,17 +19,15 @@ class Question
 
     #[ORM\Column(type: 'text')]
     #[Assert\NotBlank]
-    private string $prompt = '';
+    private string $question = '';
 
     #[ORM\Column(type: 'json')]
-    private array $choices = [];
+    #[Assert\Count(min: 2)]
+    private array $answers = [];
 
     #[ORM\Column(length: 255)]
     #[Assert\NotBlank]
-    private string $answer = '';
-
-    #[ORM\Column(enumType: TaskType::class)]
-    private TaskType $type = TaskType::QUIZ;
+    private string $correctAnswer = '';
 
     public function __construct()
     {
@@ -53,47 +50,36 @@ class Question
         return $this;
     }
 
-    public function getPrompt(): string
+    public function getQuestion(): string
     {
-        return $this->prompt;
+        return $this->question;
     }
 
-    public function setPrompt(string $prompt): self
+    public function setQuestion(string $question): self
     {
-        $this->prompt = $prompt;
+        $this->question = $question;
         return $this;
     }
 
-    public function getChoices(): array
+    public function getAnswers(): array
     {
-        return $this->choices;
+        return $this->answers;
     }
 
-    public function setChoices(array $choices): self
+    public function setAnswers(array $answers): self
     {
-        $this->choices = $choices;
+        $this->answers = $answers;
         return $this;
     }
 
-    public function getAnswer(): string
+    public function getCorrectAnswer(): string
     {
-        return $this->answer;
+        return $this->correctAnswer;
     }
 
-    public function setAnswer(string $answer): self
+    public function setCorrectAnswer(string $correctAnswer): self
     {
-        $this->answer = $answer;
-        return $this;
-    }
-
-    public function getType(): TaskType
-    {
-        return $this->type;
-    }
-
-    public function setType(TaskType $type): self
-    {
-        $this->type = $type;
+        $this->correctAnswer = $correctAnswer;
         return $this;
     }
 }

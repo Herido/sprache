@@ -2,38 +2,29 @@
 
 namespace App\Controller;
 
-use App\Repository\CourseRepository;
-use App\Repository\QuizAttemptRepository;
-use App\Service\ProgressService;
+use App\Repository\ProgressRepository;
+use App\Service\CourseService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
 class DashboardController extends AbstractController
 {
-    public function __construct(
-        private CourseRepository $courseRepository,
-        private QuizAttemptRepository $quizAttemptRepository,
-        private ProgressService $progressService
-    ) {
+    public function __construct(private readonly CourseService $courseService, private readonly ProgressRepository $progressRepository)
+    {
     }
 
-    #[Route('/', name: 'dashboard')]
+    #[Route('/', name: 'app_dashboard')]
+    #[IsGranted('ROLE_USER')]
     public function index(): Response
     {
         $user = $this->getUser();
-        $courses = $this->courseRepository->findAll();
-        $attempts = $this->quizAttemptRepository->findBy(['user' => $user], ['submittedAt' => 'DESC'], 5);
-
-        $progress = [];
-        foreach ($courses as $course) {
-            $progress[(string) $course->getId()] = $this->progressService->getCourseProgress($user, $course);
-        }
+        $progress = $user ? $this->progressRepository->findBy(['user' => $user]) : [];
 
         return $this->render('dashboard/index.html.twig', [
-            'courses' => $courses,
+            'courses' => $this->courseService->listCourses(),
             'progress' => $progress,
-            'attempts' => $attempts,
         ]);
     }
 }

@@ -3,7 +3,8 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Enum\UserRole;
+use App\Enum\Role;
+use App\Form\RegistrationFormType;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -17,37 +18,43 @@ class SecurityController extends AbstractController
     #[Route('/login', name: 'app_login')]
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
+        $error = $authenticationUtils->getLastAuthenticationError();
+        $lastUsername = $authenticationUtils->getLastUsername();
+
         return $this->render('security/login.html.twig', [
-            'last_username' => $authenticationUtils->getLastUsername(),
-            'error' => $authenticationUtils->getLastAuthenticationError(),
+            'last_username' => $lastUsername,
+            'error' => $error,
         ]);
     }
 
     #[Route('/logout', name: 'app_logout')]
     public function logout(): void
     {
-        throw new \LogicException('This will be intercepted by the firewall.');
+        throw new \LogicException('Logout wird von Symfony verwaltet.');
     }
 
-    #[Route('/register', name: 'app_register', methods: ['GET', 'POST'])]
+    #[Route('/register', name: 'app_register')]
     public function register(
         Request $request,
         EntityManagerInterface $entityManager,
-        UserPasswordHasherInterface $hasher
+        UserPasswordHasherInterface $passwordHasher
     ): Response {
-        if ($request->isMethod('POST')) {
-            $user = (new User())
-                ->setEmail($request->request->get('email'))
-                ->setName($request->request->get('name'))
-                ->setRoles([UserRole::STUDENT->value]);
-            $hashed = $hasher->hashPassword($user, $request->request->get('password'));
+        $user = new User();
+        $form = $this->createForm(RegistrationFormType::class, $user);
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $hashed = $passwordHasher->hashPassword($user, (string) $form->get('plainPassword')->getData());
             $user->setPassword($hashed);
+            $user->setRoles([Role::ROLE_USER->value]);
             $entityManager->persist($user);
             $entityManager->flush();
 
             return $this->redirectToRoute('app_login');
         }
 
-        return $this->render('security/register.html.twig');
+        return $this->render('security/register.html.twig', [
+            'registrationForm' => $form->createView(),
+        ]);
     }
 }
