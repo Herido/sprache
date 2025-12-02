@@ -1,0 +1,25 @@
+{% extends 'base.html.twig' %}
+{% block title %}Lektion bearbeiten{% endblock %}
+{% block body %}
+<h1 class="h3 mb-3">{{ lesson.id ? 'Lektion bearbeiten' : 'Neue Lektion anlegen' }}</h1>
+<form method="post" class="card p-4 shadow-sm">
+    <div class="mb-3">
+        <label class="form-label">Titel</label>
+        <input name="title" class="form-control" value="{{ lesson.title }}" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Kurs</label>
+        <select name="course" class="form-select" required>
+            <option value="">Bitte wählen</option>
+            {% for course in courses %}
+                <option value="{{ course.id }}" {% if lesson.course and lesson.course.id == course.id %}selected{% endif %}>{{ course.title }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Inhalt</label>
+        <textarea name="content" class="form-control" rows="5" required>{{ lesson.content }}</textarea>
+    </div>
+    <button class="btn btn-primary">Speichern</button>
+</form>
+{% endblock %}

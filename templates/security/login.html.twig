@@ -1,18 +1,27 @@
 {% extends 'base.html.twig' %}
 {% block title %}Login{% endblock %}
 {% block body %}
-<h1>Login</h1>
-{% if error %}<div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>{% endif %}
-<form action="{{ path('app_login') }}" method="post" class="w-50">
-    <div class="mb-3">
-        <label class="form-label">E-Mail</label>
-        <input type="email" name="_username" class="form-control" value="{{ last_username }}" required>
+<div class="row justify-content-center">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h1 class="h4 mb-3">Login</h1>
+                {% if error %}
+                    <div class="alert alert-danger">{{ error.messageKey|trans(error.messageData, 'security') }}</div>
+                {% endif %}
+                <form method="post">
+                    <div class="mb-3">
+                        <label class="form-label">E-Mail</label>
+                        <input type="email" name="_username" value="{{ last_username }}" required class="form-control">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Passwort</label>
+                        <input type="password" name="_password" required class="form-control">
+                    </div>
+                    <button class="btn btn-primary">Anmelden</button>
+                </form>
+            </div>
+        </div>
     </div>
-    <div class="mb-3">
-        <label class="form-label">Passwort</label>
-        <input type="password" name="_password" class="form-control" required>
-    </div>
-    <button class="btn btn-primary">Login</button>
-</form>
-<p class="mt-3">Noch kein Account? <a href="{{ path('app_register') }}">Registrieren</a></p>
+</div>
 {% endblock %}

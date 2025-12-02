@@ -3,7 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\User;
-use App\Enum\UserRole;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
@@ -39,8 +38,9 @@ class SecurityController extends AbstractController
             $user = (new User())
                 ->setEmail($request->request->get('email'))
                 ->setName($request->request->get('name'))
-                ->setRoles([UserRole::STUDENT->value]);
-            $hashed = $hasher->hashPassword($user, $request->request->get('password'));
+                ->setRoles(['ROLE_USER']);
+
+            $hashed = $hasher->hashPassword($user, (string) $request->request->get('password'));
             $user->setPassword($hashed);
             $entityManager->persist($user);
             $entityManager->flush();

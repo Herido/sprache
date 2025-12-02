@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+{% block title %}Kurs bearbeiten{% endblock %}
+{% block body %}
+<h1 class="h3 mb-3">{{ course.id ? 'Kurs bearbeiten' : 'Neuen Kurs anlegen' }}</h1>
+<form method="post" class="card p-4 shadow-sm">
+    <div class="mb-3">
+        <label class="form-label">Titel</label>
+        <input name="title" class="form-control" value="{{ course.title }}" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Beschreibung</label>
+        <textarea name="description" class="form-control" rows="4" required>{{ course.description }}</textarea>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Sprache</label>
+        <input name="language" class="form-control" value="{{ course.language }}" required>
+    </div>
+    <button class="btn btn-primary">Speichern</button>
+</form>
+{% endblock %}

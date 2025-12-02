@@ -2,10 +2,10 @@
 
 namespace App\Entity;
 
-use App\Enum\CourseLevel;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -14,30 +14,32 @@ class Course
 {
     #[ORM\Id]
     #[ORM\Column(type: 'uuid', unique: true)]
+    #[Groups(['course:read', 'lesson:read'])]
     private Uuid $id;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 120)]
     #[Assert\NotBlank]
+    #[Groups(['course:read', 'lesson:read'])]
     private string $title = '';
 
     #[ORM\Column(type: 'text')]
     #[Assert\NotBlank]
+    #[Groups(['course:read'])]
     private string $description = '';
 
-    #[ORM\Column(enumType: CourseLevel::class)]
-    private CourseLevel $level = CourseLevel::BEGINNER;
+    #[ORM\Column(length: 50)]
+    #[Assert\NotBlank]
+    #[Groups(['course:read', 'lesson:read'])]
+    private string $language = '';
 
+    /** @var Collection<int, Lesson> */
     #[ORM\OneToMany(mappedBy: 'course', targetEntity: Lesson::class, cascade: ['persist', 'remove'])]
     private Collection $lessons;
-
-    #[ORM\OneToMany(mappedBy: 'course', targetEntity: Enrollment::class, cascade: ['persist', 'remove'])]
-    private Collection $enrollments;
 
     public function __construct()
     {
         $this->id = Uuid::v4();
         $this->lessons = new ArrayCollection();
-        $this->enrollments = new ArrayCollection();
     }
 
     public function getId(): Uuid
@@ -67,14 +69,14 @@ class Course
         return $this;
     }
 
-    public function getLevel(): CourseLevel
+    public function getLanguage(): string
     {
-        return $this->level;
+        return $this->language;
     }
 
-    public function setLevel(CourseLevel $level): self
+    public function setLanguage(string $language): self
     {
-        $this->level = $level;
+        $this->language = $language;
         return $this;
     }
 
@@ -103,13 +105,5 @@ class Course
         }
 
         return $this;
-    }
-
-    /**
-     * @return Collection<int, Enrollment>
-     */
-    public function getEnrollments(): Collection
-    {
-        return $this->enrollments;
     }
 }

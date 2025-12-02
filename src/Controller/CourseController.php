@@ -2,45 +2,56 @@
 
 namespace App\Controller;
 
-use App\Enum\CourseLevel;
+use App\Entity\Course;
 use App\Repository\CourseRepository;
-use App\Service\ProgressService;
+use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Uid\Uuid;
 
 #[Route('/courses')]
 class CourseController extends AbstractController
 {
-    public function __construct(private CourseRepository $courseRepository, private ProgressService $progressService)
-    {
-    }
-
     #[Route('/', name: 'course_index')]
-    public function index(): Response
+    public function index(CourseRepository $courseRepository): Response
     {
-        $courses = $this->courseRepository->findAll();
         return $this->render('course/index.html.twig', [
-            'courses' => $courses,
+            'courses' => $courseRepository->findAll(),
         ]);
     }
 
-    #[Route('/level/{level}', name: 'course_by_level')]
-    public function byLevel(string $level): Response
+    #[Route('/create', name: 'course_create', methods: ['GET', 'POST'])]
+    public function create(Request $request, EntityManagerInterface $entityManager): Response
     {
-        $courses = $this->courseRepository->findByLevel(CourseLevel::from($level));
-        return $this->render('course/index.html.twig', [
-            'courses' => $courses,
+        $course = new Course();
+
+        if ($request->isMethod('POST')) {
+            $course
+                ->setTitle($request->request->get('title', ''))
+                ->setDescription($request->request->get('description', ''))
+                ->setLanguage($request->request->get('language', ''));
+
+            $entityManager->persist($course);
+            $entityManager->flush();
+
+            $this->addFlash('success', 'Kurs wurde erstellt.');
+            return $this->redirectToRoute('course_index');
+        }
+
+        return $this->render('course/form.html.twig', [
+            'course' => $course,
         ]);
     }
 
-    #[Route('/{id}', name: 'course_show')]
-    public function show(string $id): Response
+    #[Route('/{id}', name: 'course_show', requirements: ['id' => '[0-9a-f\-]{36}'])]
+    public function show(CourseRepository $courseRepository, string $id): Response
     {
-        $course = $this->courseRepository->find($id);
+        $course = $courseRepository->find(Uuid::fromString($id));
+
         if (!$course) {
-            throw $this->createNotFoundException();
+            throw $this->createNotFoundException('Kurs nicht gefunden.');
         }
 
         return $this->render('course/show.html.twig', [
@@ -48,18 +59,28 @@ class CourseController extends AbstractController
         ]);
     }
 
-    #[Route('/{id}/enroll', name: 'course_enroll')]
-    public function enroll(string $id): RedirectResponse
+    #[Route('/{id}/edit', name: 'course_edit', methods: ['GET', 'POST'], requirements: ['id' => '[0-9a-f\-]{36}'])]
+    public function edit(Request $request, EntityManagerInterface $entityManager, CourseRepository $courseRepository, string $id): Response
     {
-        $course = $this->courseRepository->find($id);
-        $user = $this->getUser();
-        if (!$course || !$user) {
-            throw $this->createNotFoundException();
+        $course = $courseRepository->find(Uuid::fromString($id));
+
+        if (!$course) {
+            throw $this->createNotFoundException('Kurs nicht gefunden.');
         }
 
-        $this->progressService->enroll($user, $course);
-        $this->addFlash('success', 'Du bist erfolgreich eingeschrieben!');
+        if ($request->isMethod('POST')) {
+            $course
+                ->setTitle($request->request->get('title', $course->getTitle()))
+                ->setDescription($request->request->get('description', $course->getDescription()))
+                ->setLanguage($request->request->get('language', $course->getLanguage()));
 
-        return $this->redirectToRoute('course_show', ['id' => $id]);
+            $entityManager->flush();
+            $this->addFlash('success', 'Kurs aktualisiert.');
+            return $this->redirectToRoute('course_show', ['id' => $course->getId()]);
+        }
+
+        return $this->render('course/form.html.twig', [
+            'course' => $course,
+        ]);
     }
 }

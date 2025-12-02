@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+{% block title %}Admin{% endblock %}
+{% block body %}
+<h1 class="h3 mb-4">Adminbereich</h1>
+<div class="row g-4">
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Benutzer</h5>
+                <p class="display-6 mb-0">{{ users|length }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Kurse</h5>
+                <p class="display-6 mb-0">{{ courses|length }}</p>
+                <a href="{{ path('course_create') }}" class="btn btn-primary btn-sm mt-2">Kurs anlegen</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <h5 class="card-title">Lektionen</h5>
+                <p class="display-6 mb-0">{{ lessons|length }}</p>
+                <a href="{{ path('lesson_create') }}" class="btn btn-primary btn-sm mt-2">Lektion anlegen</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
