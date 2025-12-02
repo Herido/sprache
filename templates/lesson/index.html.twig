@@ -1,0 +1,23 @@
+{% extends 'base.html.twig' %}
+{% block title %}Lektionen{% endblock %}
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3">Lektionen</h1>
+    <a href="{{ path('lesson_create') }}" class="btn btn-primary">Neue Lektion</a>
+</div>
+<div class="list-group">
+    {% for lesson in lessons %}
+        <a class="list-group-item list-group-item-action" href="{{ path('lesson_show', {id: lesson.id}) }}">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="fw-bold">{{ lesson.title }}</div>
+                    <small class="text-muted">{{ lesson.course.title ?? 'Kein Kurs' }}</small>
+                </div>
+                <span class="badge bg-primary">{{ lesson.exercises|length }} Übungen</span>
+            </div>
+        </a>
+    {% else %}
+        <div class="alert alert-info">Keine Lektionen vorhanden.</div>
+    {% endfor %}
+</div>
+{% endblock %}

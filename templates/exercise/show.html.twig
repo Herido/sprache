@@ -1,0 +1,12 @@
+{% extends 'base.html.twig' %}
+{% block title %}Übung{% endblock %}
+{% block body %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">Übung</h1>
+    <a href="{{ path('exercise_edit', {id: exercise.id}) }}" class="btn btn-outline-primary">Bearbeiten</a>
+</div>
+<p class="lead">{{ exercise.question }}</p>
+<p><strong>Typ:</strong> {{ exercise.type.value }}</p>
+<p><strong>Antwort:</strong> {{ exercise.answer }}</p>
+<p><strong>Lektion:</strong> {{ exercise.lesson.title }}</p>
+{% endblock %}

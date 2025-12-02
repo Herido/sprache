@@ -1,19 +1,24 @@
 {% extends 'base.html.twig' %}
 {% block title %}{{ course.title }}{% endblock %}
 {% block body %}
-<h1>{{ course.title }}</h1>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h3 mb-1">{{ course.title }}</h1>
+        <p class="text-muted">Sprache: {{ course.language }}</p>
+    </div>
+    <div class="btn-group">
+        <a href="{{ path('course_edit', {id: course.id}) }}" class="btn btn-outline-primary">Bearbeiten</a>
+        <a href="{{ path('lesson_create') }}" class="btn btn-primary">Lektion hinzufügen</a>
+    </div>
+</div>
 <p>{{ course.description }}</p>
-<p><span class="badge bg-secondary">Level: {{ course.level.value }}</span></p>
-<a href="{{ path('course_enroll', {id: course.id}) }}" class="btn btn-success mb-3">Einschreiben</a>
-<h3>Lektionen</h3>
-<ul class="list-group">
+
+<h2 class="h5 mt-4">Lektionen</h2>
+<div class="list-group">
     {% for lesson in course.lessons %}
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-            <span>{{ lesson.title }}</span>
-            <a class="btn btn-outline-primary btn-sm" href="{{ path('lesson_show', {id: lesson.id}) }}">Öffnen</a>
-        </li>
+        <a class="list-group-item" href="{{ path('lesson_show', {id: lesson.id}) }}">{{ lesson.title }}</a>
     {% else %}
-        <li class="list-group-item">Keine Lektionen vorhanden.</li>
+        <div class="alert alert-info">Keine Lektionen vorhanden.</div>
     {% endfor %}
-</ul>
+</div>
 {% endblock %}

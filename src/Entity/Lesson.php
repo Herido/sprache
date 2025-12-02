@@ -5,6 +5,7 @@ namespace App\Entity;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Annotation\Groups;
 use Symfony\Component\Uid\Uuid;
 use Symfony\Component\Validator\Constraints as Assert;
 
@@ -13,35 +14,53 @@ class Lesson
 {
     #[ORM\Id]
     #[ORM\Column(type: 'uuid', unique: true)]
+    #[Groups(['lesson:read', 'course:read', 'progress:read'])]
     private Uuid $id;
-
-    #[ORM\Column(length: 255)]
-    #[Assert\NotBlank]
-    private string $title = '';
-
-    #[ORM\Column(type: 'text')]
-    private string $content = '';
 
     #[ORM\ManyToOne(targetEntity: Course::class, inversedBy: 'lessons')]
     #[ORM\JoinColumn(nullable: false)]
+    #[Groups(['lesson:read'])]
     private ?Course $course = null;
 
-    #[ORM\OneToMany(mappedBy: 'lesson', targetEntity: Quiz::class, cascade: ['persist', 'remove'])]
-    private Collection $quizzes;
+    #[ORM\Column(length: 150)]
+    #[Assert\NotBlank]
+    #[Groups(['lesson:read', 'course:read', 'progress:read'])]
+    private string $title = '';
 
-    #[ORM\OneToMany(mappedBy: 'lesson', targetEntity: LessonProgress::class, cascade: ['persist', 'remove'])]
+    #[ORM\Column(type: 'text')]
+    #[Assert\NotBlank]
+    #[Groups(['lesson:read'])]
+    private string $content = '';
+
+    /** @var Collection<int, Exercise> */
+    #[ORM\OneToMany(mappedBy: 'lesson', targetEntity: Exercise::class, cascade: ['persist', 'remove'])]
+    private Collection $exercises;
+
+    /** @var Collection<int, Progress> */
+    #[ORM\OneToMany(mappedBy: 'lesson', targetEntity: Progress::class, cascade: ['persist', 'remove'])]
     private Collection $progressRecords;
 
     public function __construct()
     {
         $this->id = Uuid::v4();
-        $this->quizzes = new ArrayCollection();
+        $this->exercises = new ArrayCollection();
         $this->progressRecords = new ArrayCollection();
     }
 
     public function getId(): Uuid
     {
         return $this->id;
+    }
+
+    public function getCourse(): ?Course
+    {
+        return $this->course;
+    }
+
+    public function setCourse(?Course $course): self
+    {
+        $this->course = $course;
+        return $this;
     }
 
     public function getTitle(): string
@@ -66,27 +85,35 @@ class Lesson
         return $this;
     }
 
-    public function getCourse(): ?Course
+    /**
+     * @return Collection<int, Exercise>
+     */
+    public function getExercises(): Collection
     {
-        return $this->course;
+        return $this->exercises;
     }
 
-    public function setCourse(?Course $course): self
+    public function addExercise(Exercise $exercise): self
     {
-        $this->course = $course;
+        if (!$this->exercises->contains($exercise)) {
+            $this->exercises[] = $exercise;
+            $exercise->setLesson($this);
+        }
+
+        return $this;
+    }
+
+    public function removeExercise(Exercise $exercise): self
+    {
+        if ($this->exercises->removeElement($exercise) && $exercise->getLesson() === $this) {
+            $exercise->setLesson(null);
+        }
+
         return $this;
     }
 
     /**
-     * @return Collection<int, Quiz>
-     */
-    public function getQuizzes(): Collection
-    {
-        return $this->quizzes;
-    }
-
-    /**
-     * @return Collection<int, LessonProgress>
+     * @return Collection<int, Progress>
      */
     public function getProgressRecords(): Collection
     {

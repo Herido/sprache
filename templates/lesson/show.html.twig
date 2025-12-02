@@ -1,16 +1,24 @@
 {% extends 'base.html.twig' %}
 {% block title %}{{ lesson.title }}{% endblock %}
 {% block body %}
-<h1>{{ lesson.title }}</h1>
-<div class="mb-3">{{ lesson.content|raw }}</div>
-<a href="{{ path('lesson_complete', {id: lesson.id}) }}" class="btn btn-success">Als abgeschlossen markieren</a>
-<hr/>
-<h3>Quiz</h3>
-<ul>
-    {% for quiz in lesson.quizzes %}
-        <li><a href="{{ path('quiz_take', {id: quiz.id}) }}">{{ quiz.title }}</a></li>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h3 mb-1">{{ lesson.title }}</h1>
+        <p class="text-muted">Kurs: {{ lesson.course.title ?? 'Kein Kurs' }}</p>
+    </div>
+    <div class="btn-group">
+        <a href="{{ path('lesson_edit', {id: lesson.id}) }}" class="btn btn-outline-primary">Bearbeiten</a>
+        <a href="{{ path('exercise_create') }}" class="btn btn-primary">Übung hinzufügen</a>
+    </div>
+</div>
+<p class="lead">{{ lesson.content }}</p>
+
+<h2 class="h5 mt-4">Übungen</h2>
+<div class="list-group">
+    {% for exercise in lesson.exercises %}
+        <a class="list-group-item" href="{{ path('exercise_show', {id: exercise.id}) }}">{{ exercise.question|u.truncate(80) }}</a>
     {% else %}
-        <li>Keine Quizfragen vorhanden.</li>
+        <div class="alert alert-info">Keine Übungen vorhanden.</div>
     {% endfor %}
-</ul>
+</div>
 {% endblock %}
